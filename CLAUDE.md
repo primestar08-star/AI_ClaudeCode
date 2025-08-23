@@ -4,12 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-このリポジトリは4つの異なるゲーム アプリケーションを含むマルチプロジェクト構成です：
+このリポジトリは8つの異なるゲーム アプリケーションを含むマルチプロジェクト構成です：
 
 1. **ハイローご褒美ゲーム** (Root) - Electron製日本向けカジノゲーム  
 2. **アーケード ポーカー v2** - アニメテーマのWeb ポーカーゲーム
 3. **ゲーム レビューサイト** - Next.js/Supabase製レビュープラットフォーム
 4. **ホラー写真ローグライク** - React/TypeScript製ナラティブゲーム
+5. **パチンコデモ** - HTML5/Canvas製パチンコシミュレーション
+6. **パチンコマーブル** - 物理エンジン強化版パチンコゲーム
+7. **パチンコFlutter** - Flutter/Flame製モバイル向けパチンコゲーム
+8. **パチンコPython** - Pygame/Pymunk製デスクトップパチンコゲーム
 
 ## 開発コマンド
 
@@ -61,6 +65,45 @@ npm run preview             # プロダクションビルド プレビュー
 # 直接ブラウザで開いてテスト可能
 ```
 
+### パチンコデモ (pachinko-demo/)
+```bash
+# 静的HTML5ゲーム - ブラウザ直接実行可能
+# index.html (基本版)
+# enhanced-index.html (UI強化版)
+# Flutter風デザインとCanvas物理演算
+```
+
+### パチンコマーブル (pachinko-marble/)
+```bash
+# 物理エンジン強化版 - ブラウザ直接実行可能
+# index.html (エントリーポイント)
+# 複数の物理エンジンファイル (game.js, game-physics.js, game-final-fix.js)
+# CSS3アニメーション + Canvas描画
+```
+
+### パチンコFlutter (pachinko-flutter/)
+```bash
+# Flutter/Flameモバイル向けアプリ
+flutter pub get              # 依存関係インストール
+flutter run                  # 開発実行 (Android/iOS)
+flutter build apk            # Android APKビルド
+flutter build ios            # iOS アプリビルド
+
+# 主要依存: Flame (ゲームエンジン), Forge2D (物理), AudioPlayers (音響)
+# アーキテクチャ: Provider状態管理 + CustomPainter描画
+```
+
+### パチンコPython (pachinko-python/)
+```bash
+# Pygame/Pymunk デスクトップアプリ
+pip install -r requirements.txt  # 依存関係インストール (pygame, pymunk, numpy)
+python pachinko_game.py          # ゲーム実行
+
+# パッケージ化 (PyInstaller使用)
+# dist/ フォルダに実行ファイル生成済み
+# セーブデータ: pachinko_save.json (JSON形式)
+```
+
 ## アーキテクチャ概要
 
 ### ハイローご褒美ゲーム
@@ -96,6 +139,35 @@ npm run preview             # プロダクションビルド プレビュー
 - **ゲーセン風UI**: 緑フェルト背景、アーケードスタイル
 - **静的配布**: ビルドプロセス不要、直接配信可能
 
+### パチンコデモ
+- **HTML5/Canvas**: 純粋なWeb技術、外部依存なし
+- **物理演算**: カスタム重力・衝突検出システム
+- **Flutter風UI**: Material Designインスパイアの美観
+- **複数バージョン**: 基本版とUI強化版を同梱
+- **レスポンシブ**: モバイル・デスクトップ両対応
+
+### パチンコマーブル
+- **強化物理エンジン**: 改良された衝突・反発システム
+- **段階的開発**: 複数の物理エンジンファイル (緊急修正→最終版)
+- **CSS3アニメーション**: 滑らかなマーブル軌道
+- **デバッグ機能**: 物理パラメータ調整UI
+- **パフォーマンス最適化**: 60fps安定動作
+
+### パチンコFlutter
+- **Flame ゲームエンジン**: 高性能2Dゲーム開発フレームワーク
+- **Forge2D 物理**: Box2D準拠の本格物理シミュレーション  
+- **クロスプラットフォーム**: Android・iOS・Web対応
+- **音響システム**: audioplayers による効果音・BGM
+- **状態管理**: Provider パターンでゲーム状態制御
+- **カスタムペイント**: 独自描画ロジックでリッチ表現
+
+### パチンコPython
+- **Pygame**: 成熟したPythonゲーム開発ライブラリ
+- **Pymunk 物理**: Chipmunk物理エンジンのPythonバインディング
+- **デスクトップ配布**: PyInstallerでスタンドアロン実行ファイル
+- **セーブシステム**: JSON形式でゲーム進行保存
+- **NumPy統合**: 数値計算の高速化
+
 ## 既知の問題
 
 ### ゲーム レビューサイト
@@ -109,6 +181,12 @@ npm run preview             # プロダクションビルド プレビュー
 - **ストーリー進行**: 新コンテンツ追加時は写真→ルートマッピング更新が必要
 - **セーブシステム**: ローカルストレージのみ、クラウド同期なし
 - **バランス調整**: ゲーム難易度・選択肢の影響度は継続的な調整対象
+
+### パチンコ系プロジェクト
+- **物理演算の複雑性**: 各実装で異なる物理エンジン、パラメータ調整が重要
+- **パフォーマンス**: 60fps維持のため重い計算の最適化が必要
+- **クロスプラットフォーム対応**: Flutter版は各プラットフォーム固有の調整要
+- **セーブデータ**: Python版以外はローカルストレージ、データ形式統一未実装
 
 ## 開発ノート・重要事項
 
