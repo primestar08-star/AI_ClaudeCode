@@ -2,150 +2,296 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## プロジェクト概要
 
-This is a multi-project gaming repository containing four distinct applications:
+このリポジトリは8つの異なるゲーム アプリケーションを含むマルチプロジェクト構成です：
 
-1. **High-Low Reward Game** (Root) - Electron-based Japanese casino game
-2. **Arcade Poker v2** - Web-based poker with anime theming  
-3. **Game Review Site** - Next.js/Supabase review platform
-4. **Horror Photo Roguelike** - React/TypeScript narrative game
+1. **ハイローご褒美ゲーム** (Root) - Electron製日本向けカジノゲーム  
+2. **アーケード ポーカー v2** - アニメテーマのWeb ポーカーゲーム
+3. **ゲーム レビューサイト** - Next.js/Supabase製レビュープラットフォーム
+4. **ホラー写真ローグライク** - React/TypeScript製ナラティブゲーム
+5. **パチンコデモ** - HTML5/Canvas製パチンコシミュレーション
+6. **パチンコマーブル** - 物理エンジン強化版パチンコゲーム
+7. **パチンコFlutter** - Flutter/Flame製モバイル向けパチンコゲーム
+8. **パチンコPython** - Pygame/Pymunk製デスクトップパチンコゲーム
 
-## Development Commands
+## 開発コマンド
 
-### High-Low Reward Game (Root Directory)
+### ハイローご褒美ゲーム (ルートディレクトリ)
 ```bash
-# Development
-npm start                    # Run Electron app in development mode
-npm install                  # Install dependencies (Electron + electron-builder)
+# 開発・テスト
+npm start                    # Electronアプリを開発モードで起動
+npm install                  # 依存関係インストール (Electron + electron-builder)
 
-# Building
-npm run build-win           # Build Windows executable
-npm run dist                # Alternative build command
+# ビルド・配布
+npm run build-win           # Windows実行ファイル作成
+npm run dist                # 代替ビルドコマンド
 
-# Files: main.js (Electron), high-low-game-casino.html (game logic)
+# 重要ファイル: main.js (Electron), high-low-game-casino.html (ゲームロジック)
+# 画像アセット: images/ フォルダ（厳格な命名規則：character{1-3}_{reward|special}{1-5|1-3}.jpg）
 ```
 
-### Game Review Site (game-review-site/)
+### ゲーム レビューサイト (game-review-site/)
 ```bash
-# Development  
-npm run dev                 # Start Next.js dev server with Turbopack
-npm run build               # Production build (has type errors - see Known Issues)
-npm start                   # Start production server
-npm run lint                # Run ESLint
+# 開発
+npm run dev                 # Next.js開発サーバー起動 (Turbopack使用)
+npm run build               # プロダクションビルド (※型エラー有り - 既知の問題参照)
+npm start                   # プロダクションサーバー起動
+npm run lint                # ESLint実行
 
-# Database
-# Setup: Follow SUPABASE_SETUP.md for complete database configuration
-# Environment: Requires .env.local with Supabase credentials
+# データベース設定
+# セットアップ: SUPABASE_SETUP.md の手順に従ってSupabase設定
+# 環境変数: .env.local にSupabase認証情報が必要
+# テストデータ: lib/mockGames.ts に游戏のサンプルデータあり
 ```
 
-### Horror Photo Roguelike (horror-photo-roguelike/)
+### ホラー写真ローグライク (horror-photo-roguelike/)
 ```bash
-# Development
-npm run dev                 # Start Vite dev server  
-npm run build               # TypeScript compile + Vite build
-npm run lint                # Run ESLint
-npm run preview             # Preview production build
+# 開発
+npm run dev                 # Vite開発サーバー起動
+npm run build               # TypeScriptコンパイル + Viteビルド
+npm run lint                # ESLint実行  
+npm run preview             # プロダクションビルド プレビュー
 
-# Architecture: Zustand stores + React components + TypeScript
+# アーキテクチャ: Zustandストア + Reactコンポーネント + TypeScript
+# 状態管理: 4つの独立したZustandストア（game, story, encyclopedia, extended）
 ```
 
-### Arcade Poker v2 (arcade-poker-v2/)
+### アーケード ポーカー v2 (arcade-poker-v2/)
 ```bash
-# Static files - serve via any HTTP server
-# Files: index.html (horizontal), index-vertical.html (mobile)
+# 静的ファイル - 任意のHTTPサーバーで配信
+# index.html (水平レイアウト・デスクトップ向け)
+# index-vertical.html (垂直レイアウト・モバイル向け)
+# 直接ブラウザで開いてテスト可能
 ```
 
-## Architecture Overview
+### パチンコデモ (pachinko-demo/)
+```bash
+# 静的HTML5ゲーム - ブラウザ直接実行可能
+# index.html (基本版)
+# enhanced-index.html (UI強化版)
+# Flutter風デザインとCanvas物理演算
+```
 
-### High-Low Reward Game
-- **Single-file architecture**: All game logic in `high-low-game-casino.html`
-- **Electron wrapper**: `main.js` creates BrowserWindow, minimal configuration
-- **Asset system**: Character images in `images/` with strict naming convention
-- **Game mechanics**: Card values 2-14 (Ace high), tie = win, progressive rewards
-- **Distribution**: Windows executable via electron-builder
+### パチンコマーブル (pachinko-marble/)
+```bash
+# 物理エンジン強化版 - ブラウザ直接実行可能
+# index.html (エントリーポイント)
+# 複数の物理エンジンファイル (game.js, game-physics.js, game-final-fix.js)
+# CSS3アニメーション + Canvas描画
+```
 
-### Game Review Site  
-- **Next.js 15 App Router**: Server/client components with Turbopack
-- **Supabase integration**: Authentication, database, RLS policies
-- **Database schema**: Users, games, reviews, favorites, roles tables
-- **Authentication**: Google/Apple OAuth via Supabase Auth
-- **Type safety**: Generated types in `types/database.ts`
-- **Review system**: 5-dimensional scoring (play/balance/expression/ux/value)
+### パチンコFlutter (pachinko-flutter/)
+```bash
+# Flutter/Flameモバイル向けアプリ
+flutter pub get              # 依存関係インストール
+flutter run                  # 開発実行 (Android/iOS)
+flutter build apk            # Android APKビルド
+flutter build ios            # iOS アプリビルド
 
-### Horror Photo Roguelike
-- **State management**: Multiple Zustand stores (game, story, encyclopedia, extended)
-- **Game progression**: 5-day system, 3 rounds per day, choice-based narrative  
-- **Photo system**: Seedrandom-based selection, effects modify stats
-- **Story routing**: Photo choices influence ending paths (escape/exorcism/contract)
-- **Personality system**: Tracks player behavior for ending determination
-- **Persistence**: Local storage for progress/discovered content
+# 主要依存: Flame (ゲームエンジン), Forge2D (物理), AudioPlayers (音響)
+# アーキテクチャ: Provider状態管理 + CustomPainter描画
+```
 
-### Arcade Poker v2
-- **Responsive design**: Horizontal desktop + vertical mobile layouts
-- **Anime theming**: CSS animations, dealer character integration
-- **Static deployment**: No build process required
+### パチンコPython (pachinko-python/)
+```bash
+# Pygame/Pymunk デスクトップアプリ
+pip install -r requirements.txt  # 依存関係インストール (pygame, pymunk, numpy)
+python pachinko_game.py          # ゲーム実行
 
-## Known Issues
+# パッケージ化 (PyInstaller使用)
+# dist/ フォルダに実行ファイル生成済み
+# セーブデータ: pachinko_save.json (JSON形式)
+```
 
-### Game Review Site
-- **Route handler types**: Next.js 15 params are now Promise-based, causing TypeScript errors in API routes
-- **Build warnings**: Turbopack workspace root detection issues due to multiple package.json files
-- **Port conflicts**: Dev server auto-adjusts ports (typically 3001 instead of 3000)
+## アーキテクチャ概要
 
-### Horror Photo Roguelike  
-- **Complex state dependencies**: Multiple stores interact; changes require careful coordination
-- **Story progression**: Photo-to-route mapping system may need updates for new content
-- **Save system**: Local storage only, no cloud sync
+### ハイローご褒美ゲーム
+- **単一ファイル設計**: `high-low-game-casino.html` にゲームロジック統合
+- **Electronラッパー**: `main.js` でBrowserWindow作成、最小設定
+- **アセット システム**: `images/` フォルダの厳格な命名規則
+- **ゲーム メカニクス**: カード値2-14 (Aが最強)、引き分け=勝利、累進報酬システム
+- **統計システム**: 勝率・連勝数・最高記録の3要素で100人中の順位算出
+- **配布形式**: electron-builderによるWindows実行ファイル
 
-## Development Notes
+### ゲーム レビューサイト
+- **Next.js 15 App Router**: サーバー・クライアント コンポーネント + Turbopack
+- **Supabase統合**: 認証、データベース、RLSポリシー
+- **データベース設計**: users, games, reviews, favorites, roles テーブル
+- **認証システム**: Google/Apple OAuth (Supabase Auth経由)
+- **型安全性**: `types/database.ts` の生成型定義
+- **レビューシステム**: 5次元評価 (プレイ性/バランス/表現力/UX/価値)
+- **ユーザー管理**: ランク制度（Bronze→Diamond）、性格タイプ分類
 
-### Image Asset Management
-- **High-Low Game**: Strict naming `character{1-3}_{reward|special}{1-5|1-3}.jpg`
-- **Arcade Poker**: Character images in project root
-- **Game Review**: Game icons via external URLs or `public/images/games/`
+### ホラー写真ローグライク
+- **状態管理**: 4つのZustandストア (game, story, encyclopedia, extended)
+- **ゲーム進行**: 5日制システム、1日3ラウンド、選択式ナラティブ
+- **写真システム**: Seedrandomベースの選択、エフェクトで能力値変動
+- **ストーリー分岐**: 写真選択でエンディング決定 (脱出/除霊/契約)
+- **性格判定**: プレイヤーの行動追跡でエンディング自動選択
+- **永続化**: ローカルストレージでの進行・発見コンテンツ保存
+- **百科事典機能**: 発見した写真・エンティティの詳細記録
 
-### Database Schema (Game Review Site)
-- **Users**: Handle, display name, rank system, personality types
-- **Reviews**: Multi-dimensional scoring, privacy controls, helpful voting
-- **Games**: Platform arrays, genre tags, external image URLs
-- **RLS**: Public read, authenticated write policies
+### アーケード ポーカー v2
+- **レスポンシブ設計**: 水平デスクトップ + 垂直モバイルレイアウト
+- **アニメテーマ**: CSSアニメーション、ディーラーキャラ統合
+- **yamikawa美学**: 「病みかわ」デザインコンセプト
+- **ゲーセン風UI**: 緑フェルト背景、アーケードスタイル
+- **静的配布**: ビルドプロセス不要、直接配信可能
 
-### State Architecture (Horror Photo Roguelike)
-- **gameStore**: Core game state, photo selection, effect processing
-- **storyStore**: Narrative events, route progression tracking  
-- **encyclopediaStore**: Discovery tracking, meta-progression
-- **extendedGameStore**: Day/phase progression, personality analysis
+### パチンコデモ
+- **HTML5/Canvas**: 純粋なWeb技術、外部依存なし
+- **物理演算**: カスタム重力・衝突検出システム
+- **Flutter風UI**: Material Designインスパイアの美観
+- **複数バージョン**: 基本版とUI強化版を同梱
+- **レスポンシブ**: モバイル・デスクトップ両対応
 
-## Project-Specific Patterns
+### パチンコマーブル
+- **強化物理エンジン**: 改良された衝突・反発システム
+- **段階的開発**: 複数の物理エンジンファイル (緊急修正→最終版)
+- **CSS3アニメーション**: 滑らかなマーブル軌道
+- **デバッグ機能**: 物理パラメータ調整UI
+- **パフォーマンス最適化**: 60fps安定動作
 
-### Next.js Route Handlers (Game Review Site)
-Current pattern (has type errors):
+### パチンコFlutter
+- **Flame ゲームエンジン**: 高性能2Dゲーム開発フレームワーク
+- **Forge2D 物理**: Box2D準拠の本格物理シミュレーション  
+- **クロスプラットフォーム**: Android・iOS・Web対応
+- **音響システム**: audioplayers による効果音・BGM
+- **状態管理**: Provider パターンでゲーム状態制御
+- **カスタムペイント**: 独自描画ロジックでリッチ表現
+
+### パチンコPython
+- **Pygame**: 成熟したPythonゲーム開発ライブラリ
+- **Pymunk 物理**: Chipmunk物理エンジンのPythonバインディング
+- **デスクトップ配布**: PyInstallerでスタンドアロン実行ファイル
+- **セーブシステム**: JSON形式でゲーム進行保存
+- **NumPy統合**: 数値計算の高速化
+
+## 既知の問題
+
+### ゲーム レビューサイト
+- **ルートハンドラー型エラー**: Next.js 15でparamsがPromise化、API routesでTypeScriptエラー発生
+- **ビルド警告**: 複数のpackage.jsonによるTurbopackワークスペースルート検出問題  
+- **ポート競合**: 開発サーバーが自動ポート調整 (通常3001ポートを使用)
+- **型定義修正が必要**: APIルートで`{ params }: { params: Promise<{ id: string }> }`に更新要
+
+### ホラー写真ローグライク
+- **複雑な状態依存**: 複数ストアの相互作用、変更時は慎重な調整が必要
+- **ストーリー進行**: 新コンテンツ追加時は写真→ルートマッピング更新が必要
+- **セーブシステム**: ローカルストレージのみ、クラウド同期なし
+- **バランス調整**: ゲーム難易度・選択肢の影響度は継続的な調整対象
+
+### パチンコ系プロジェクト
+- **物理演算の複雑性**: 各実装で異なる物理エンジン、パラメータ調整が重要
+- **パフォーマンス**: 60fps維持のため重い計算の最適化が必要
+- **クロスプラットフォーム対応**: Flutter版は各プラットフォーム固有の調整要
+- **セーブデータ**: Python版以外はローカルストレージ、データ形式統一未実装
+
+## 開発ノート・重要事項
+
+### 画像アセット管理
+- **ハイローゲーム**: 厳格な命名規則 `character{1-3}_{reward|special}{1-5|1-3}.jpg`
+  - 全24枚必須 (各キャラ8枚 × 3キャラ)
+  - ファイルサイズ1MB以下推奨、解像度500x500px以上
+- **アーケードポーカー**: キャラクター画像はプロジェクトルート
+- **ゲームレビュー**: ゲームアイコンは外部URL または `public/images/games/`
+
+### データベース設計 (ゲーム レビューサイト)
+- **users**: handle, display_name, rank (Bronze→Diamond), type_label (6種類の性格)
+- **reviews**: 5次元スコア、プライバシー制御、helpful投票機能
+- **games**: プラットフォーム配列、ジャンルタグ、外部画像URL
+- **user_favorites_seed**: レコメンデーション用の重み付けシード
+- **RLS ポリシー**: 公開読み取り、認証済み書き込み
+
+### 状態管理アーキテクチャ (ホラー写真ローグライク)
+- **gameStore**: コアゲーム状態、写真選択、エフェクト処理、ラウンド進行
+- **storyStore**: ナラティブイベント、ルート進行追跡、ストーリー分岐
+- **encyclopediaStore**: 発見追跡、メタ進行、写真・エンティティ詳細記録
+- **extendedGameStore**: 日次・フェーズ進行、性格分析、エンディング判定
+- **相互作用**: 写真選択→ストーリールート進行→性格ポイント蓄積→エンディング決定
+
+## プロジェクト固有パターン・コード規約
+
+### Next.js API ルート修正パターン (ゲーム レビューサイト)
+現在のパターン (型エラーあり):
 ```typescript
 export async function GET(request: Request, { params }: { params: { id: string } })
 ```
 
-Should be updated to:
+修正後パターン:
 ```typescript  
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> })
 ```
 
-### Zustand Store Structure (Horror Photo Roguelike)
+修正対象ファイル:
+- `app/api/games/[id]/route.ts`
+- `app/api/games/[id]/reviews/route.ts`
+- `app/api/reviews/[id]/route.ts`
+
+### Zustand ストア構造 (ホラー写真ローグライク)
 ```typescript
 export const useStore = create<StoreType>()(
   persist(
     (set, get) => ({
-      // state and actions
+      // 状態とアクション定義
+      selectPhoto: (photo: PhotoCard) => {
+        // 百科事典に追加、ストーリールート進行
+        const encyclopedia = useEncyclopediaStore.getState();
+        const storyStore = useStoryStore.getState();
+        // ...
+      },
+      nextRound: () => { /* ラウンド進行処理 */ }
     }),
     {
-      name: 'storage-key',
-      partialize: (state) => ({ /* selected fields */ })
+      name: 'horror-photo-game',  // ローカルストレージキー
+      partialize: (state) => ({   // 永続化対象フィールド
+        sanity: state.sanity,
+        clarity: state.clarity,
+        // ...
+      })
     }
   )
 );
 ```
 
-### Electron App Configuration (High-Low Game)
-- Window: 1280x900, non-resizable
-- No menu bar, web security disabled for local file access
-- Auto-hide menu bar enabled
+**重要**: ストア間の相互参照は`getState()`で行う
+
+### Electron アプリ設定 (ハイローご褒美ゲーム)
+```javascript
+// main.js の重要設定
+const mainWindow = new BrowserWindow({
+  width: 1280,
+  height: 900,
+  resizable: false,          // サイズ変更無効
+  autoHideMenuBar: true,     // メニューバー自動非表示
+  webPreferences: {
+    nodeIntegration: false,
+    contextIsolation: true,
+    webSecurity: false       // ローカルファイルアクセス用
+  }
+});
+```
+
+**配布用ビルド設定**:
+- `npm run build-win` でWindows実行ファイル作成
+- `dist/win-unpacked/` にポータブル版
+- `dist/*.exe` にインストーラー版
+- 画像ファイルも自動的にパッケージに含まれる
+
+## 特記事項・開発時の注意点
+
+### 日本語ゲーム開発の考慮事項
+- **ハイローご褒美ゲーム**: DLsite等日本市場向け、キャラクター画像の著作権注意
+- **アーケードポーカー**: yamikawa美学、日本のゲーセン文化参考
+- **UI/UX**: 日本語テキスト表示、フォントサイズ・行間に注意
+
+### パフォーマンス最適化
+- **ホラーゲーム**: seedrandom使用で再現性確保、大量画像の遅延読み込み
+- **レビューサイト**: Supabase RLSで適切な権限制御、画像最適化
+- **全プロジェクト**: ローカルストレージの容量制限に注意
+
+### セキュリティ・プライバシー
+- レビューサイトの個人情報はSupabase RLSで保護
+- Electronアプリは署名なしでセキュリティ警告発生可能性
+- ローカルゲームデータの暗号化は未実装

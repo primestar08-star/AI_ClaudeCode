@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パチンコ収支計算 - 1玉4円計算機能付き</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Exo 2', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: 
+                radial-gradient(ellipse at top, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, rgba(75, 0, 130, 0.1) 0%, transparent 50%),
+                linear-gradient(180deg, #1a0033 0%, #2d0052 30%, #3a0066 50%, #2d0052 70%, #1a0033 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+        }
+
+        #app {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー */
+        .header {
+            height: 100px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 70%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #bbb;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 
+                0 0 10px rgba(255, 215, 0, 1),
+                0 0 20px rgba(255, 215, 0, 0.8), 
+                0 0 30px rgba(255, 215, 0, 0.6),
+                0 4px 8px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            min-width: 60px;
+            text-align: center;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: goldShimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes goldShimmer {
+            0%, 100% { 
+                text-shadow: 
+                    0 0 10px rgba(255, 215, 0, 1),
+                    0 0 20px rgba(255, 215, 0, 0.8), 
+                    0 0 30px rgba(255, 215, 0, 0.6);
+            }
+            50% { 
+                text-shadow: 
+                    0 0 15px rgba(255, 215, 0, 1),
+                    0 0 30px rgba(255, 215, 0, 0.9), 
+                    0 0 45px rgba(255, 215, 0, 0.7),
+                    0 0 60px rgba(255, 215, 0, 0.5);
+            }
+        }
+
+        .mode-display {
+            text-align: center;
+        }
+
+        .mode-text {
+            font-family: 'Exo 2', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            text-shadow: 
+                0 0 20px rgba(255, 255, 255, 0.8),
+                0 0 40px rgba(255, 255, 255, 0.6),
+                0 4px 8px rgba(0, 0, 0, 0.8);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff, #e6e6fa, #ffffff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            position: relative;
+        }
+        
+        .mode-text::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent, rgba(255,255,255,0.1));
+            border-radius: 4px;
+            z-index: -1;
+            animation: modeGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes modeGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .mode-text.st {
+            color: #ff6b6b;
+            background: linear-gradient(135deg, #ff6b6b, #ff1744, #ff6b6b);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: stPulse 1.5s infinite, stGradientShift 3s ease-in-out infinite;
+        }
+
+        @keyframes stPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                text-shadow: 
+                    0 0 20px rgba(255, 107, 107, 0.8),
+                    0 0 40px rgba(255, 107, 107, 0.6),
+                    0 4px 8px rgba(0, 0, 0, 0.8);
+            }
+            50% { 
+                transform: scale(1.1); 
+                text-shadow: 
+                    0 0 30px rgba(255, 107, 107, 1),
+                    0 0 60px rgba(255, 107, 107, 0.8),
+                    0 0 80px rgba(255, 107, 107, 0.6),
+                    0 4px 12px rgba(0, 0, 0, 0.8);
+            }
+        }
+        
+        @keyframes stGradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .probability-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            color: #ffd700;
+            font-weight: 400;
+            text-shadow: 
+                0 0 10px rgba(255, 215, 0, 0.8),
+                0 0 20px rgba(255, 215, 0, 0.6),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #ffd700, #fff200, #ffd700);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+        
+        .probability-text::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ffd700, transparent);
+            animation: probabilityGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes probabilityGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ゲーム画面 */
+        .game-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            background: radial-gradient(circle at center, 
+                rgba(42, 20, 88, 0.15) 0%, 
+                rgba(26, 13, 58, 0.08) 50%, 
+                transparent 100%);
+        }
+
+        /* 強化されたエフェクトオーバーレイ */
+        .effect-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .effect-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.3s ease-out;
+            text-shadow: 0 0 30px currentColor;
+            max-width: 90vw;
+            word-wrap: break-word;
+        }
+
+        .effect-text.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .effect-text.chance {
+            color: #ffd700;
+            text-shadow: 
+                0 0 20px rgba(255, 215, 0, 1),
+                0 0 40px rgba(255, 215, 0, 0.9), 
+                0 0 80px rgba(255, 215, 0, 0.6),
+                0 0 120px rgba(255, 215, 0, 0.4),
+                2px 2px 0px rgba(255, 0, 0, 0.8),
+                -2px -2px 0px rgba(0, 255, 255, 0.8);
+            animation: chanceGlow 0.4s infinite alternate, chancePulse 1.2s infinite;
+            font-weight: 900;
+            letter-spacing: clamp(1px, 0.3vw, 3px);
+            white-space: nowrap;
+            font-size: clamp(28px, 4vw, 48px);
+        }
+
+        .effect-text.blackout {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            opacity: 0;
+            transform: none;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        .effect-text.blackout.show {
+            opacity: 1;
+            transition: opacity 0.2s ease-out;
+        }
+
+        .effect-text.win {
+            color: #00ff00;
+            text-shadow: 0 0 40px rgba(0, 255, 0, 0.9), 0 0 80px rgba(0, 255, 0, 0.6);
+            animation: winBounce 0.8s ease-out;
+        }
+
+        .effect-text.miss {
+            color: #ff4444;
+            text-shadow: 0 0 30px rgba(255, 68, 68, 0.9), 0 0 60px rgba(255, 68, 68, 0.6);
+            animation: missShake 0.5s ease-out;
+            font-size: 48px;
+        }
+
+        .effect-text.celebrate {
+            color: #ffd700;
+            text-shadow: 
+                0 0 20px rgba(255, 215, 0, 1),
+                0 0 40px rgba(255, 215, 0, 0.8),
+                0 0 80px rgba(255, 215, 0, 0.6);
+            animation: celebrateExplosion 1.5s ease-out;
+            font-size: 42px;
+            line-height: 1.2;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        @keyframes chanceGlow {
+            from { 
+                text-shadow: 
+                    0 0 20px rgba(255, 215, 0, 1),
+                    0 0 40px rgba(255, 215, 0, 0.9), 
+                    0 0 80px rgba(255, 215, 0, 0.6),
+                    0 0 120px rgba(255, 215, 0, 0.4),
+                    2px 2px 0px rgba(255, 0, 0, 0.8),
+                    -2px -2px 0px rgba(0, 255, 255, 0.8);
+            }
+            to { 
+                text-shadow: 
+                    0 0 30px rgba(255, 215, 0, 1),
+                    0 0 60px rgba(255, 215, 0, 1), 
+                    0 0 120px rgba(255, 215, 0, 0.8),
+                    0 0 200px rgba(255, 215, 0, 0.6),
+                    3px 3px 0px rgba(255, 0, 0, 1),
+                    -3px -3px 0px rgba(0, 255, 255, 1);
+            }
+        }
+        
+        @keyframes chancePulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            .effect-text.chance {
+                font-size: clamp(24px, 6vw, 42px);
+                letter-spacing: 2px;
+            }
+            
+            .effect-text.celebrate {
+                font-size: clamp(28px, 5vw, 36px);
+                line-height: 1.3;
+            }
+            
+            .effect-text.miss {
+                font-size: clamp(32px, 6vw, 42px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .effect-text.chance {
+                white-space: normal;
+                line-height: 1.2;
+            }
+            
+            /* モバイル用UI調整 */
+            .header {
+                height: 80px;
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+            
+            .mode-text {
+                font-size: 18px;
+                max-width: 140px;
+            }
+            
+            .probability-text {
+                font-size: 14px;
+            }
+            
+            .st-display {
+                padding: 15px;
+                left: 10px;
+                right: 10px;
+            }
+            
+            .st-title {
+                font-size: 18px;
+            }
+            
+            .st-count {
+                font-size: 26px;
+            }
+            
+            .st-info {
+                font-size: 12px;
+                gap: 8px;
+            }
+        }
+
+        @keyframes winBounce {
+            0% { transform: translate(-50%, -50%) scale(0.5); }
+            50% { transform: translate(-50%, -50%) scale(1.3); }
+            100% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        @keyframes missShake {
+            0%, 100% { transform: translate(-50%, -50%); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-52%, -50%); }
+            20%, 40%, 60%, 80% { transform: translate(-48%, -50%); }
+        }
+
+        @keyframes celebrateExplosion {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.3); 
+                opacity: 0;
+            }
+            30% { 
+                transform: translate(-50%, -50%) scale(1.2); 
+                opacity: 1;
+            }
+            60% { 
+                transform: translate(-50%, -50%) scale(0.95); 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1;
+            }
+        }
+
+        /* 残念演出 */
+        .effect-text.miss {
+            color: #888888;
+            text-shadow: 0 0 20px rgba(136, 136, 136, 0.8), 0 0 40px rgba(136, 136, 136, 0.4);
+            animation: missSlideDown 1.0s ease-out;
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(68,68,68,0.6));
+            padding: 20px 40px;
+            border-radius: 15px;
+            border: 2px solid #666666;
+        }
+
+        @keyframes missSlideDown {
+            0% { 
+                transform: translate(-50%, -80%) scale(0.8); 
+                opacity: 0; 
+            }
+            30% { 
+                transform: translate(-50%, -45%) scale(1.1); 
+                opacity: 0.9; 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1; 
+            }
+        }
+
+        /* お祝い演出 */
+        .effect-text.celebrate {
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.9), 0 0 60px rgba(255, 215, 0, 0.6);
+            animation: celebratePulse 1.5s ease-in-out;
+            background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,69,0,0.1));
+            padding: 25px 50px;
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+            font-weight: bold;
+        }
+
+        @keyframes celebratePulse {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.3) rotate(-5deg); 
+                opacity: 0; 
+            }
+            25% { 
+                transform: translate(-50%, -50%) scale(1.2) rotate(2deg); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(0.9) rotate(-1deg); 
+            }
+            75% { 
+                transform: translate(-50%, -50%) scale(1.1) rotate(1deg); 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1) rotate(0deg); 
+                opacity: 1; 
+            }
+        }
+
+        /* 強化されたST表示 */
+        .st-display {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            right: 20px;
+            max-width: 480px;
+            margin: 0 auto;
+            background: 
+                linear-gradient(135deg, rgba(255, 107, 107, 0.95), rgba(255, 142, 83, 0.95), rgba(255, 107, 107, 0.95)),
+                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            background-size: 200% 200%, 100% 100%;
+            animation: stGradient 3s ease infinite;
+            padding: 25px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 
+                0 0 60px rgba(255, 107, 107, 0.8), 
+                0 0 120px rgba(255, 107, 107, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            transform: translateY(-200px);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 60;
+        }
+
+        .st-display.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes stGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .st-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 12px;
+            text-shadow: 
+                0 0 10px rgba(255, 255, 255, 0.8),
+                0 0 20px rgba(255, 255, 255, 0.6),
+                0 4px 8px rgba(0, 0, 0, 0.7);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 2px;
+            color: white;
+            background: linear-gradient(45deg, #ffffff, #ffd700, #ffffff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: stTitleGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes stTitleGlow {
+            0%, 100% { 
+                filter: brightness(1) drop-shadow(0 0 5px rgba(255,255,255,0.5));
+            }
+            50% { 
+                filter: brightness(1.2) drop-shadow(0 0 15px rgba(255,215,0,0.8));
+            }
+        }
+
+        .st-count {
+            font-family: 'Orbitron', monospace;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 
+                0 0 15px rgba(255, 255, 255, 1),
+                0 0 30px rgba(255, 255, 255, 0.8),
+                0 4px 8px rgba(0, 0, 0, 0.7);
+            white-space: nowrap;
+            letter-spacing: 2px;
+            color: white;
+            background: linear-gradient(45deg, #ffffff, #e6e6fa, #ffffff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            position: relative;
+        }
+        
+        .st-count::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ffd700, transparent);
+            animation: countUnderline 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes countUnderline {
+            0%, 100% { opacity: 0.4; width: 60%; }
+            50% { opacity: 1; width: 80%; }
+        }
+
+        .st-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .st-continue {
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .st-chain {
+            color: #ffd700;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+        }
+
+        /* ST連続当たり表示 */
+        .st-consecutive-hits {
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: 
+                linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(255, 0, 255, 0.15)),
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 20px;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .consecutive-label {
+            font-family: 'Exo 2', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            letter-spacing: 0.5px;
+        }
+
+        .consecutive-count {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: #00ffff;
+            text-shadow: 
+                0 0 10px rgba(0, 255, 255, 1),
+                0 0 20px rgba(0, 255, 255, 0.8),
+                0 0 30px rgba(0, 255, 255, 0.6),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #00ffff, #00ccff, #00ffff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: consecutiveGlow 1.8s ease-in-out infinite;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        @keyframes consecutiveGlow {
+            0%, 100% { 
+                text-shadow: 
+                    0 0 10px rgba(0, 255, 255, 1),
+                    0 0 20px rgba(0, 255, 255, 0.8),
+                    0 0 30px rgba(0, 255, 255, 0.6);
+            }
+            50% { 
+                text-shadow: 
+                    0 0 15px rgba(0, 255, 255, 1),
+                    0 0 30px rgba(0, 255, 255, 0.9),
+                    0 0 45px rgba(0, 255, 255, 0.8),
+                    0 0 60px rgba(0, 255, 255, 0.6);
+            }
+        }
+
+        /* 連続当たりが3回以上の時の特別効果 */
+        .consecutive-count.fever {
+            animation: consecutiveGlow 1.8s ease-in-out infinite, feverPulse 0.8s ease-in-out infinite;
+            color: #ff6600;
+            background: linear-gradient(45deg, #ff6600, #ff3300, #ff6600);
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        @keyframes feverPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 強化されたコントロールパネル */
+        .control-panel {
+            height: 120px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 30%, transparent 100%);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 15px 20px;
+            z-index: 100;
+            box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .control-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            border: 2px solid transparent;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95) translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.6);
+            border-color: rgba(255, 255, 255, 0.5);
+            animation: activePulse 2s infinite;
+        }
+
+        .control-btn.auto-stopped {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            animation: stoppedPulse 2s infinite;
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes activePulse {
+            0%, 100% { box-shadow: 0 6px 20px rgba(240, 147, 251, 0.6); }
+            50% { box-shadow: 0 8px 30px rgba(240, 147, 251, 0.8); }
+        }
+
+        @keyframes stoppedPulse {
+            0%, 100% { box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6); }
+            50% { box-shadow: 0 8px 30px rgba(255, 107, 107, 0.9); }
+        }
+
+        .control-icon {
+            font-size: 26px;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-label {
+            font-size: 13px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* フローティングボタン */
+        .floating-buttons {
+            position: absolute;
+            bottom: 140px;
+            right: 20px;
+            z-index: 80;
+        }
+
+        .floating-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.85);
+            border: 3px solid #ffd700;
+            color: white;
+            font-size: 26px;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.15) rotate(5deg);
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        /* 強化された通知バナー */
+        .notification {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            transform: translate(0, -50%);
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.95), rgba(255, 100, 100, 0.95));
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            opacity: 0;
+            transform: translate(0, -50%) scale(0.8);
+            transition: all 0.5s ease-out;
+            z-index: 200;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translate(0, -50%) scale(1);
+        }
+
+        .notification-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .notification-text {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* レスポンシブ */
+        @media (min-width: 768px) {
+            #app {
+                max-width: 480px;
+                margin: 0 auto;
+                box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+                border-radius: 10px;
+                overflow: hidden;
+            }
+        }
+
+        /* 追加のビジュアル効果 */
+        .game-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="star"><stop offset="0%" stop-color="white" stop-opacity="0.8"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient></defs><circle cx="10" cy="10" r="1" fill="url(%23star)"/><circle cx="30" cy="25" r="1" fill="url(%23star)"/><circle cx="70" cy="15" r="1" fill="url(%23star)"/><circle cx="90" cy="35" r="1" fill="url(%23star)"/><circle cx="15" cy="60" r="1" fill="url(%23star)"/><circle cx="80" cy="70" r="1" fill="url(%23star)"/><circle cx="25" cy="90" r="1" fill="url(%23star)"/><circle cx="60" cy="80" r="1" fill="url(%23star)"/></svg>') repeat;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 履歴モーダル */
+        .history-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .history-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .history-content {
+            background: linear-gradient(135deg, #2d0052 0%, #1a0033 100%);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+
+        .history-header h2 {
+            color: #ffd700;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: 2px solid #ff4444;
+            color: #ff4444;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #ff4444;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .history-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .summary-item span:first-child {
+            color: #cccccc;
+            font-size: 14px;
+        }
+
+        .summary-item span:last-child {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #888888;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
+        .history-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .history-item-number {
+            background: #ffd700;
+            color: #1a0033;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .history-item-mode {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .mode-normal {
+            background: rgba(100, 149, 237, 0.8);
+            color: white;
+        }
+
+        .mode-st {
+            background: rgba(255, 69, 69, 0.8);
+            color: white;
+        }
+
+        .mode-prereveal {
+            background: rgba(255, 215, 0, 0.8);
+            color: #1a0033;
+        }
+
+        .history-item-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-item-spins {
+            color: #ffd700;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .history-item-type {
+            color: #00ff88;
+            font-size: 14px;
+            font-weight: bold;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 2px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .history-item-time {
+            color: #888888;
+            font-size: 12px;
+            align-self: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- ヘッダー -->
+        <div class="header">
+            <div class="stat-item">
+                <div class="stat-label">回転数</div>
+                <div class="stat-value" id="spin-count">0</div>
+            </div>
+            
+            <div class="mode-display">
+                <div class="mode-text" id="mode-text">通常時</div>
+                <div class="probability-text" id="probability-text">1/319</div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-label">獲得玉</div>
+                <div class="stat-value" id="ball-count">0</div>
+            </div>
+            
+            <div class="stat-item">
+                <div class="stat-label">推定収支</div>
+                <div class="stat-value" id="profit-display" style="color: #ffffff;">±0P</div>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div class="game-area">
+            <canvas id="gameCanvas"></canvas>
+            
+            <!-- エフェクトオーバーレイ -->
+            <div class="effect-overlay">
+                <div class="effect-text chance" id="chance-effect">🎰💰 激熱40%チャンス 💰🎰</div>
+                <div class="effect-text blackout" id="blackout-effect"></div>
+                <div class="effect-text win" id="win-effect">BIG BONUS!!<br>+<span id="win-amount">3000</span></div>
+                <div class="effect-text miss" id="miss-effect">残念...<br>MISS</div>
+                <div class="effect-text celebrate" id="celebrate-effect">🎊 CONGRATULATIONS! 🎊<br>激熱40%チャンス的中！</div>
+            </div>
+        </div>
+
+        <!-- ST表示 -->
+        <div class="st-display" id="st-display">
+            <div class="st-title">SPECIAL TIME</div>
+            <div class="st-count"><span id="st-count">0</span> / 144</div>
+            <div class="st-info">
+                <div class="st-continue">継続率 77%</div>
+                <div class="st-chain">継続 <span id="st-chain">0</span>回</div>
+            </div>
+            <div class="st-consecutive-hits">
+                <div class="consecutive-label">連続当たり</div>
+                <div class="consecutive-count" id="st-consecutive-hits">0</div>
+            </div>
+        </div>
+
+        <!-- 収支詳細表示 -->
+        <div class="profit-detail" id="profit-detail" style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 500;
+            display: none;
+            min-width: 280px;
+            box-shadow: 0 0 30px rgba(255,215,0,0.5);
+        ">
+            <h3 style="color: #ffd700; margin-bottom: 15px; text-align: center;">収支詳細</h3>
+            <div style="color: white; font-size: 14px; line-height: 1.8;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>投資玉数:</span>
+                    <span id="invested-balls">0玉</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>獲得玉数:</span>
+                    <span id="earned-balls">0玉</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #666;">
+                    <span>差玉:</span>
+                    <span id="diff-balls">0玉</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>収支(1玉4円):</span>
+                    <span id="profit-yen" style="font-weight: bold;">¥0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-top: 8px; border-top: 1px solid #666;">
+                    <span>収支(P表示):</span>
+                    <span id="profit-p" style="font-weight: bold; font-size: 18px;">±0P</span>
+                </div>
+            </div>
+            <button onclick="document.getElementById('profit-detail').style.display='none'" style="
+                width: 100%;
+                margin-top: 15px;
+                padding: 10px;
+                background: #ff4444;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+            ">閉じる</button>
+        </div>
+
+        <!-- コントロールパネル -->
+        <div class="control-panel">
+            <button class="control-btn" id="auto-btn">
+                <div class="control-icon">▶</div>
+                <div class="control-label">オート</div>
+            </button>
+            
+            <button class="control-btn" id="speed-btn">
+                <div class="control-icon">⚡</div>
+                <div class="control-label">速度: 標準</div>
+            </button>
+            
+            <button class="control-btn" id="sound-btn">
+                <div class="control-icon">🔊</div>
+                <div class="control-label">音声</div>
+            </button>
+            
+            <button class="control-btn" id="profit-btn" onclick="showProfitDetail()">
+                <div class="control-icon">💰</div>
+                <div class="control-label">収支詳細</div>
+            </button>
+        </div>
+
+        <!-- フローティングボタン -->
+        <div class="floating-buttons">
+            <button class="floating-btn" id="stats-btn">📊</button>
+            <button class="floating-btn" id="history-btn">📈</button>
+            <button class="floating-btn" id="settings-btn">⚙️</button>
+        </div>
+
+        <!-- 通知バナー -->
+        <div class="notification" id="auto-stopped-notification">
+            <div class="notification-title">AUTO STOPPED</div>
+            <div class="notification-text">当たりでオート停止しました</div>
+        </div>
+
+        <!-- 履歴モーダル -->
+        <div class="history-modal" id="history-modal">
+            <div class="history-content">
+                <div class="history-header">
+                    <h2>🎪 当たり履歴</h2>
+                    <button class="close-btn" id="close-history">×</button>
+                </div>
+                <div class="history-summary">
+                    <div class="summary-item">
+                        <span>通常時当たり:</span>
+                        <span id="normal-hit-count">0回</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>ST中当たり:</span>
+                        <span id="st-hit-count">0回</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>先バレ当たり:</span>
+                        <span id="prereveal-hit-count">0回</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>総当たり回数:</span>
+                        <span id="total-hit-count">0回</span>
+                    </div>
+                </div>
+                <div class="history-list" id="history-list">
+                    <div class="history-empty">まだ当たりがありません</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインスクリプト（統合版） -->
+    <script>
+        // enhanced-game.js と enhanced-game-ui.js の内容を統合したものを読み込み
+        // (実際は外部ファイルとして読み込み)
+    </script>
+    <script src="game.js"></script>
+    <script>
+        // UI機能を統合
+        Object.assign(EnhancedPachinkoGame.prototype, {
+            // enhanced-game-ui.js の全メソッドをここに統合
+            
+            updateDisplay() {
+                document.getElementById('spin-count').textContent = this.gameState.spinCount;
+                document.getElementById('ball-count').textContent = this.gameState.ballCount;
+                document.getElementById('st-count').textContent = this.gameState.stCount;
+                document.getElementById('st-chain').textContent = this.gameState.stContinueCount;
+                
+                // 収支計算と表示
+                updateProfitDisplay();
+                
+                // ST連続当たり回数表示更新
+                const consecutiveElement = document.getElementById('st-consecutive-hits');
+                if (consecutiveElement) {
+                    consecutiveElement.textContent = this.gameState.stConsecutiveHits;
+                    
+                    // 3回以上でフィーバー表示
+                    if (this.gameState.stConsecutiveHits >= 3) {
+                        consecutiveElement.classList.add('fever');
+                    } else {
+                        consecutiveElement.classList.remove('fever');
+                    }
+                }
+                
+                const modeText = document.getElementById('mode-text');
+                const probabilityText = document.getElementById('probability-text');
+                
+                if (this.gameState.mode === 'st') {
+                    modeText.textContent = 'SPECIAL TIME';
+                    modeText.classList.add('st');
+                    probabilityText.textContent = '1/144';
+                } else {
+                    modeText.textContent = '通常時';
+                    modeText.classList.remove('st');
+                    probabilityText.textContent = '1/319';
+                }
+            },
+            
+            showEffect(type) {
+                const effectElement = document.getElementById(`${type}-effect`);
+                effectElement.classList.add('show');
+                
+                setTimeout(() => {
+                    effectElement.classList.remove('show');
+                }, type === 'chance' ? 2000 : 1500);
+            },
+            
+            showWinEffect(amount) {
+                document.getElementById('win-amount').textContent = amount;
+                this.showEffect('win');
+            },
+            
+            showSTDisplay() {
+                document.getElementById('st-display').classList.add('active');
+            },
+            
+            hideSTDisplay() {
+                document.getElementById('st-display').classList.remove('active');
+            },
+            
+            showAutoStoppedNotification() {
+                const notification = document.getElementById('auto-stopped-notification');
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    this.gameState.autoStopped = false;
+                }, 3000);
+            }
+        });
+        
+        // 収支計算機能
+        let investedBalls = 0;
+        let lastSpinCount = 0;
+        
+        function updateProfitDisplay() {
+            const game = window.game;
+            if (!game) return;
+            
+            // 回転数が増えたら投資玉を計算（1回転あたり約4玉消費）
+            const spinDiff = game.gameState.spinCount - lastSpinCount;
+            if (spinDiff > 0) {
+                investedBalls += spinDiff * 4;
+                lastSpinCount = game.gameState.spinCount;
+            }
+            
+            const earnedBalls = game.gameState.ballCount;
+            const diffBalls = earnedBalls - investedBalls;
+            const profitYen = diffBalls * 4; // 1玉4円
+            
+            // P表示の計算（250玉 = 1000円 = 1P）
+            const profitP = Math.floor(profitYen / 1000);
+            
+            // メイン表示を更新
+            const profitDisplay = document.getElementById('profit-display');
+            if (profitP > 0) {
+                profitDisplay.textContent = `+${profitP}P`;
+                profitDisplay.style.color = '#00ff00';
+                profitDisplay.style.textShadow = '0 0 10px rgba(0,255,0,0.8)';
+            } else if (profitP < 0) {
+                profitDisplay.textContent = `${profitP}P`;
+                profitDisplay.style.color = '#ff4444';
+                profitDisplay.style.textShadow = '0 0 10px rgba(255,68,68,0.8)';
+            } else {
+                profitDisplay.textContent = '±0P';
+                profitDisplay.style.color = '#ffffff';
+                profitDisplay.style.textShadow = '0 0 10px rgba(255,255,255,0.5)';
+            }
+            
+            // 詳細表示を更新
+            document.getElementById('invested-balls').textContent = `${investedBalls}玉`;
+            document.getElementById('earned-balls').textContent = `${earnedBalls}玉`;
+            document.getElementById('diff-balls').textContent = `${diffBalls > 0 ? '+' : ''}${diffBalls}玉`;
+            document.getElementById('diff-balls').style.color = diffBalls > 0 ? '#00ff00' : (diffBalls < 0 ? '#ff4444' : '#ffffff');
+            document.getElementById('profit-yen').textContent = `¥${profitYen > 0 ? '+' : ''}${profitYen.toLocaleString()}`;
+            document.getElementById('profit-yen').style.color = profitYen > 0 ? '#00ff00' : (profitYen < 0 ? '#ff4444' : '#ffffff');
+            document.getElementById('profit-p').textContent = `${profitP > 0 ? '+' : ''}${profitP}P`;
+            document.getElementById('profit-p').style.color = profitP > 0 ? '#00ff00' : (profitP < 0 ? '#ff4444' : '#ffffff');
+        }
+        
+        function showProfitDetail() {
+            updateProfitDisplay();
+            document.getElementById('profit-detail').style.display = 'block';
+        }
+        
+        // 定期的に収支を更新
+        setInterval(updateProfitDisplay, 500);
+    </script>
+</body>
+</html>
